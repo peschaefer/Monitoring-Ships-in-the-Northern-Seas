@@ -1,6 +1,5 @@
-// const Example = require('../models/example')
 const db = require('../utils/db')
-
+const UserModel = require('../models/example')
 const getExample = async (request, response) => {
     const data = await db.query('SELECT * FROM users')
     response.status(200).json({data})
@@ -8,14 +7,20 @@ const getExample = async (request, response) => {
 
 const store = async (request, response) => {
     const user = request.body
+    const valid = UserModel.UserValidator(request.body)
+
+    if(!valid.valid) {
+        response.status(400).json({status: valid})
+        return
+    }
 
     const result = await db.query(`INSERT INTO users (name) VALUES ('${user.name}')`)
 
     if(result.affectedRows) {
-        response.status(201).json("Success")
+        response.status(201).json({valid: true, data: request.body})
     }
     else {
-        response.status(400).json("NO")
+        response.status(400).json({valid: false, message: result})
     }
 }
 

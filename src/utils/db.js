@@ -3,8 +3,12 @@ const config = require('../config/config')
 
 async function query(sql, params) {
     const connection = await mysql.createConnection(config.db)
-    const [results, ] = await connection.execute(sql, params)
-    return results
+    try {
+        const [results, ] = await connection.execute(sql, params)
+        return results
+    } catch (err) {
+        return err.sqlMessage
+    }
 }
 
 module.exports = {
