@@ -5,7 +5,6 @@ const config = {
         password: "",
         database: "test418"
     }
-
 }
 
 module.exports = config
