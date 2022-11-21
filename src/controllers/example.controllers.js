@@ -1,7 +1,7 @@
 const db = require('../utils/db')
 const UserModel = require('../models/example')
 const getExample = async (request, response) => {
-    const data = await db.query('SELECT * FROM users')
+    const data = await db.query('SELECT * FROM port')
     response.status(200).json({data})
 }
 
