@@ -5,6 +5,6 @@ const router = express.Router()
 
 // const jsonParser = bodyParser.json()
 
-router.get('/', vesselControllers.getVessels)
+router.get('/', vesselControllers.getVessel)
 
 module.exports = router

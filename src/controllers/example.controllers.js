@@ -6,6 +6,7 @@ const getExample = async (request, response) => {
 }
 
 const store = async (request, response) => {
+    //improve this block
     const user = request.body
     const valid = UserModel.UserValidator(request.body)
 

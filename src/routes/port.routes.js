@@ -5,6 +5,6 @@ const router = express.Router()
 
 // const jsonParser = bodyParser.json()
 
-router.get('/', portControllers.getPorts)
+router.get('/', portControllers.getPort)
 
 module.exports = router

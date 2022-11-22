@@ -6,11 +6,18 @@ const getPorts = async (request, response) => {
     response.status(200).json({data})
 }
 
+const getPort = async (request, response) => {
+    const port = request.query.port
+    const data = await db.query(`SELECT * FROM port WHERE Name='${port}'`)
+    response.status(200).json({data})
+}
+
 const store = async (request, response) => {
 
 }
 
 module.exports = {
     getPorts,
+    getPort,
     store
 }
