@@ -17,16 +17,22 @@ const store = async (request, response) => {
     //     return
     // }
     //figure out timestamp datetime format to insert, no value sent right now
-    if (aisMessage.MsgType === "position_report") {
-        await storePositionReport(aisMessage)
+    try {
+        for(let i = 0; i < aisMessage.length; i++) {
+            if (aisMessage[i].MsgType === "position_report") {
+                await storePositionReport(aisMessage[i], response)
 
-    } else if (aisMessage.MsgType === "static_data") {
-        await storeStaticData(aisMessage)
+            } else if (aisMessage[i].MsgType === "static_data") {
+                await storeStaticData(aisMessage[i], response)
+            }
+        }
+    } catch (e) {
+        console.log(e)
     }
 
 }
 //move to own controller?
-const storePositionReport = async (aisMessage) => {
+const storePositionReport = async (aisMessage, response) => {
     const result = await db.query(`INSERT INTO AIS_MESSAGE (MMSI, Class)
                                    VALUES ('${aisMessage.MMSI}', '${aisMessage.Class}')`)
 
@@ -39,13 +45,13 @@ const storePositionReport = async (aisMessage) => {
                                                    '${aisMessage.CoG}', '${aisMessage.Heading}')`)
 
     if (positionResult.affectedRows) {
-        response.status(201).json({valid: true, data: request.body})
+        response.status(201).json({valid: true, data: aisMessage})
     } else {
         response.status(400).json({valid: false, message: positionResult})
     }
 }
 //move to own controller?
-const storeStaticData = async (aisMessage) => {
+const storeStaticData = async (aisMessage, response) => {
     const result = await db.query(`INSERT INTO AIS_MESSAGE (MMSI, Class)
                                    VALUES ('${aisMessage.MMSI}', '${aisMessage.Class}')`)
     //eta and port id, cross query later
@@ -60,7 +66,7 @@ const storeStaticData = async (aisMessage) => {
                                                  '${aisMessage.Draught}', '${aisMessage.Destination}')`)
 
     if (staticResult.affectedRows) {
-        response.status(201).json({valid: true, data: request.body})
+        response.status(201).json({valid: true, data: aisMessage})
     } else {
         response.status(400).json({valid: false, message: staticResult})
     }
