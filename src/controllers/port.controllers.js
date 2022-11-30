@@ -1,5 +1,4 @@
 const db = require('../utils/db')
-// const UserModel = require('../models/example')
 
 const getPorts = async (request, response) => {
     const data = await db.query('SELECT * FROM port')

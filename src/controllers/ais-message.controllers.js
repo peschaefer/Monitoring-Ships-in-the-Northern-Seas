@@ -28,13 +28,15 @@ const store = async (request, response) => {
         }
     } catch (e) {
         console.log(e)
+    } finally {
+        response.status(201).json({valid: true, insertedRows: aisMessage.length})
     }
 
 }
-//move to own controller?
+
 const storePositionReport = async (aisMessage, response) => {
-    const result = await db.query(`INSERT INTO AIS_MESSAGE (MMSI, Class)
-                                   VALUES ('${aisMessage.MMSI}', '${aisMessage.Class}')`)
+    const result = await db.query(`INSERT INTO AIS_MESSAGE (MMSI, Class, Timestamp)
+                                   VALUES ('${aisMessage.MMSI}', '${aisMessage.Class}', '${aisMessage.Timestamp.slice(0,-4)}')`)
 
     const positionResult = await db.query(`INSERT INTO POSITION_REPORT (AISMessage_Id, NavigationalStatus,
                                                                         Longitude, Latitude, RoT, SoG, CoG, Heading)
@@ -45,15 +47,16 @@ const storePositionReport = async (aisMessage, response) => {
                                                    '${aisMessage.CoG}', '${aisMessage.Heading}')`)
 
     if (positionResult.affectedRows) {
-        response.status(201).json({valid: true, data: aisMessage})
+        return true
     } else {
-        response.status(400).json({valid: false, message: positionResult})
+        response.status(400).json({valid: false, message: result})
     }
+
 }
 //move to own controller?
 const storeStaticData = async (aisMessage, response) => {
-    const result = await db.query(`INSERT INTO AIS_MESSAGE (MMSI, Class)
-                                   VALUES ('${aisMessage.MMSI}', '${aisMessage.Class}')`)
+    const result = await db.query(`INSERT INTO AIS_MESSAGE (MMSI, Class, Timestamp)
+                                   VALUES ('${aisMessage.MMSI}', '${aisMessage.Class}', '${aisMessage.Timestamp.slice(0,-4)}')`)
     //eta and port id, cross query later
     const staticResult = await db.query(`INSERT INTO STATIC_DATA (AISMessage_Id, AISIMO, CallSign, Name, VesselType,
                                                                   CargoType, Length, Breadth, Draught,
@@ -66,7 +69,7 @@ const storeStaticData = async (aisMessage, response) => {
                                                  '${aisMessage.Draught}', '${aisMessage.Destination}')`)
 
     if (staticResult.affectedRows) {
-        response.status(201).json({valid: true, data: aisMessage})
+        return true
     } else {
         response.status(400).json({valid: false, message: staticResult})
     }
