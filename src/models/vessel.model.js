@@ -15,6 +15,7 @@ const VesselSchema = {
         MapView2_Id: {type: "integer"},
         MapView3_Id: {type: "integer"},
 
+
     },
     required: ['Id', 'LoCode', 'Name', 'Country', 'Longitude', 'Latitude', 'Website', 'MapView1_Id', 'MapView2_Id', 'MapView3_Id'],
     additionalProperties: false

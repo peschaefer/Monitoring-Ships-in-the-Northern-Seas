@@ -19,7 +19,5 @@ app.use(function (req, res) {
     })
 })
 
-const listener = app.listen(8081, () => {
-    console.log(`Server started on port: ${listener.address().port}`)
-})
+
 module.exports = app
