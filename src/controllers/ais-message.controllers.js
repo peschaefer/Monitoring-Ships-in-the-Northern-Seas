@@ -8,12 +8,15 @@ const getAISMessages = async (request, response) => {
     const data = await db.query('SELECT * FROM ais_message')
     response.status(200).json({data})
 }
+//ugly but counts minutes server has been up to do time calcs
+let minsPassed = 10
+setInterval(() => {
+    minsPassed++
+}, 60000)
 
 const deleteOldAISMessages = async (request, response) => {
-    let minsPassed = 10
-    setInterval(() => {
-        minsPassed++
-    }, 60000)
+
+    console.log(minsPassed)
     //this date isnt the current time because the ais feed uses the date 2020-11-18 00:00:00 to send messages
     const result = await db.query(`SELECT AIS_MESSAGE.Id FROM AIS_MESSAGE WHERE TIMESTAMPDIFF(MINUTE, AIS_MESSAGE.Timestamp, CONVERT('2020-11-18 00:${minsPassed}:00', DATETIME)) > 5`)
 
@@ -79,14 +82,27 @@ const storePositionReport = async (aisMessage, response) => {
         staticResult.push({AISMessage_Id: -1})
     }
 
+    if(!aisMessage.RoT) {
+        aisMessage.RoT = -1
+    }
+    if(!aisMessage.SoG) {
+        aisMessage.SoG = -1
+    }
+    if(!aisMessage.CoG) {
+        aisMessage.CoG = -1
+    }
+    if(!aisMessage.Heading) {
+        aisMessage.Heading = -1
+    }
+
     //uses last element of foundAISIds, id's auto increment so that means we can grab the highest one which will always be the last position of the array
     const positionResult = await db.query(`INSERT INTO POSITION_REPORT (AISMessage_Id, NavigationalStatus,
                                                                         Longitude, Latitude, RoT, SoG, CoG, Heading, LastStaticData_Id)
                                            VALUES ('${result.insertId}', '${aisMessage.Status}',
                                                    '${aisMessage.Position.coordinates[0]}',
                                                    '${aisMessage.Position.coordinates[1]}',
-                                                   '${aisMessage.RoT}', '${aisMessage.SoG}',
-                                                   '${aisMessage.CoG}', '${aisMessage.Heading}', NULLIF('${staticResult[staticResult.length - 1].AISMessage_Id}', '-1'))`)
+                                                   NULLIF('${aisMessage.RoT}', '-1'), NULLIF('${aisMessage.SoG}', '-1'),
+                                                   NULLIF('${aisMessage.CoG}', '-1'), NULLIF('${aisMessage.Heading}', '-1'), NULLIF('${staticResult[staticResult.length - 1].AISMessage_Id}', '-1'))`)
 
     if (positionResult.affectedRows) {
         return {valid: valid}
@@ -111,6 +127,11 @@ const storeStaticData = async (aisMessage, response) => {
         aisMessage.IMO = -1
     }
 
+    const vesselResult = await db.query(`SELECT * FROM VESSEL WHERE IMO='${aisMessage.IMO}'`)
+    if(vesselResult.length === 0) {
+        aisMessage.IMO = -1
+    }
+
     const result = await db.query(`INSERT INTO AIS_MESSAGE (MMSI, Class, Timestamp, Vessel_IMO)
                                    VALUES ('${aisMessage.MMSI}', '${aisMessage.Class}', '${aisMessage.Timestamp.slice(0,-4)}', NULLIF('${aisMessage.IMO}', '-1'))`)
 
@@ -129,11 +150,14 @@ const storeStaticData = async (aisMessage, response) => {
     } else {
         ETA = -1
     }
+    if(!aisMessage.CallSign) {
+        aisMessage.CallSign = -1
+    }
     const staticResult = await db.query(`INSERT INTO STATIC_DATA (AISMessage_Id, AISIMO, CallSign, Name, VesselType,
                                                                   CargoType, Length, Breadth, Draught,
                                                                   AISDestination, ETA, DestinationPort_Id)
                                          VALUES ('${result.insertId}', '${aisMessage.IMO}',
-                                                 '${aisMessage.CallSign}',
+                                                 NULLIF('${aisMessage.CallSign}', '-1'),
                                                  '${aisMessage.Name}',
                                                  '${aisMessage.VesselType}', '${aisMessage.CargoType}',
                                                  '${aisMessage.Length}', '${aisMessage.Breadth}',
