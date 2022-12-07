@@ -7,7 +7,7 @@ const StaticDataSchema = {
         Timestamp: {type: "string"},
         Class: {type: "string"},
         MMSI: {type: "integer"},
-        IMO: {type: "integer"},
+        IMO: {type: ["integer", "string"]},
         Name: {type: "string"},
         VesselType: {type: "string"},
         Length: {type: "number"},

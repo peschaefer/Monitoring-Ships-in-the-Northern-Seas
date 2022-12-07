@@ -4,16 +4,18 @@ const {AISMessageValidator} = require("../models/ais-message.model");
 const {PositionReportValidator} = require("../models/position-report.model");
 const {StaticDataValidator} = require("../models/static-data.model");
 const {getPort} = require("./port.controllers");
-const {NULL} = require("mysql/lib/protocol/constants/types");
-// const UserModel = require('../models/example')
 const getAISMessages = async (request, response) => {
     const data = await db.query('SELECT * FROM ais_message')
     response.status(200).json({data})
 }
 
 const deleteOldAISMessages = async (request, response) => {
+    let minsPassed = 10
+    setInterval(() => {
+        minsPassed++
+    }, 60000)
     //this date isnt the current time because the ais feed uses the date 2020-11-18 00:00:00 to send messages
-    const result = await db.query(`SELECT AIS_MESSAGE.Id FROM AIS_MESSAGE WHERE TIMESTAMPDIFF(MINUTE, AIS_MESSAGE.Timestamp, CONVERT('2020-11-18 00:06:00', DATETIME)) > 5`)
+    const result = await db.query(`SELECT AIS_MESSAGE.Id FROM AIS_MESSAGE WHERE TIMESTAMPDIFF(MINUTE, AIS_MESSAGE.Timestamp, CONVERT('2020-11-18 00:${minsPassed}:00', DATETIME)) > 5`)
 
     for(let i = 0; i < result.length; i++) {
         const aisId = result[i].Id
@@ -59,25 +61,32 @@ const store = async (request, response) => {
 }
 
 const storePositionReport = async (aisMessage, response) => {
-    // console.log("Position: ")
-    // console.log(aisMessage)
 
     const valid = PositionReportValidator(aisMessage)
 
     if(!valid.valid) {
+        console.log(valid)
         return valid
     }
 
     const result = await db.query(`INSERT INTO AIS_MESSAGE (MMSI, Class, Timestamp)
                                    VALUES ('${aisMessage.MMSI}', '${aisMessage.Class}', '${aisMessage.Timestamp.slice(0,-4)}')`)
 
+    const AISResult = await db.query(`SELECT Id FROM AIS_MESSAGE WHERE MMSI='${aisMessage.MMSI}'`)
+    //this is returning a lot of nulls
+    const staticResult = await db.query(`SELECT AISMessage_Id FROM STATIC_DATA WHERE AISMessage_Id='${AISResult[AISResult.length - 1].Id}'`)
+    if(staticResult.length === 0) {
+        staticResult.push({AISMessage_Id: -1})
+    }
+
+    //uses last element of foundAISIds, id's auto increment so that means we can grab the highest one which will always be the last position of the array
     const positionResult = await db.query(`INSERT INTO POSITION_REPORT (AISMessage_Id, NavigationalStatus,
-                                                                        Longitude, Latitude, RoT, SoG, CoG, Heading)
+                                                                        Longitude, Latitude, RoT, SoG, CoG, Heading, LastStaticData_Id)
                                            VALUES ('${result.insertId}', '${aisMessage.Status}',
                                                    '${aisMessage.Position.coordinates[0]}',
                                                    '${aisMessage.Position.coordinates[1]}',
                                                    '${aisMessage.RoT}', '${aisMessage.SoG}',
-                                                   '${aisMessage.CoG}', '${aisMessage.Heading}')`)
+                                                   '${aisMessage.CoG}', '${aisMessage.Heading}', NULLIF('${staticResult[staticResult.length - 1].AISMessage_Id}', '-1'))`)
 
     if (positionResult.affectedRows) {
         return {valid: valid}
@@ -98,12 +107,13 @@ const storeStaticData = async (aisMessage, response) => {
         console.log(valid)
         return valid
     }
-    const result = await db.query(`INSERT INTO AIS_MESSAGE (MMSI, Class, Timestamp)
-                                   VALUES ('${aisMessage.MMSI}', '${aisMessage.Class}', '${aisMessage.Timestamp.slice(0,-4)}')`)
-    //right now fails if they dont have one
-    // if(aisMessage.IMO === "Unknown") {
-    //     aisMessage.IMO = -12345678
-    // }
+    if(!aisMessage.IMO || typeof(aisMessage.IMO) === "string") {
+        aisMessage.IMO = -1
+    }
+
+    const result = await db.query(`INSERT INTO AIS_MESSAGE (MMSI, Class, Timestamp, Vessel_IMO)
+                                   VALUES ('${aisMessage.MMSI}', '${aisMessage.Class}', '${aisMessage.Timestamp.slice(0,-4)}', NULLIF('${aisMessage.IMO}', '-1'))`)
+
     let portId = await db.query(`SELECT Id FROM PORT WHERE PORT.Name = '${aisMessage.Destination}'`)
     if(portId.length === 0) {
         portId = [{Id: -1}]
@@ -127,7 +137,7 @@ const storeStaticData = async (aisMessage, response) => {
                                                  '${aisMessage.Name}',
                                                  '${aisMessage.VesselType}', '${aisMessage.CargoType}',
                                                  '${aisMessage.Length}', '${aisMessage.Breadth}',
-                                                 '${aisMessage.Draught}', '${aisMessage.Destination}', NULLIF('${ETA}', '-1'), NULLIF('${portId[0].Id}', -1) )`)
+                                                 NULLIF('${aisMessage.Draught}', '${undefined}'), '${aisMessage.Destination}', NULLIF('${ETA}', '-1'), NULLIF('${portId[0].Id}', '-1') )`)
 
     if (staticResult.affectedRows) {
         return {valid: valid}

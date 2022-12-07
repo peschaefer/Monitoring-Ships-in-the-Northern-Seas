@@ -8,6 +8,7 @@ const PositionReportSchema = {
         Timestamp: {type: "string"},
         Class: {type: "string"},
         MMSI: {type: "integer"},
+        // IMO: {type: "integer"},
         Position: {
             type: "object",
             properties: {
@@ -22,7 +23,7 @@ const PositionReportSchema = {
         CoG: {type: "number"},
         Heading: {type: "integer"}
     },
-    required: ["Timestamp", "MMSI", "Position", "Status", "RoT", "SoG", "CoG", "Heading"],
+    required: ["Timestamp", "MMSI", "Position", "Status"],
     additionalProperties: true
 }
 const validate = ajv.compile(PositionReportSchema)

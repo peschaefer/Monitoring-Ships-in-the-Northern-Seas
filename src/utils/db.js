@@ -8,6 +8,9 @@ async function query(sql, params) {
         connection.end()
         return results
     } catch (err) {
+        console.log(`This broke: ${sql}`)
+        console.log(`And this is why: ${err.sqlMessage}`)
+        connection.end()
         return err.sqlMessage
     }
 }
