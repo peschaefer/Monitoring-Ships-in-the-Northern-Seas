@@ -2,23 +2,28 @@ const Ajv = require('ajv')
 const ajv = new Ajv()
 
 const PositionReportSchema = {
+
     type: "object",
     properties: {
-        AISMessage_Id: {type: "integer"},
-        NavigationalStatus: {type: "string"},
-        Longitude: {type: "integer"},
-        Latitude: {type: "integer"},
-        RoT: {type: "integer"},
-        SoG: {type: "integer"},
-        CoG: {type: "integer"},
-        Heading: {type: "integer"},
-        LastStaticData_Id: {type: "integer"},
-        MapView1_Id: {type: "integer"},
-        MapView2_Id: {type: "integer"},
-        MapView3_Id: {type: "integer"},
+        Timestamp: {type: "string"},
+        Class: {type: "string"},
+        MMSI: {type: "integer"},
+        Position: {
+            type: "object",
+            properties: {
+                coordinates: {type:"array"}
+            },
+            required: ["coordinates"],
+            additionalProperties: true
+        },
+        Status: {type: "string"},
+        RoT: {type: "number"},
+        SoG: {type: "number"},
+        CoG: {type: "number"},
+        Heading: {type: "integer"}
     },
-    required: ["AIS_Message_Id", "NavigationalStatus", "Longitude", "Latitude", "RoT", "SoG", "CoG", "Heading"],
-    additionalProperties: false
+    required: ["Timestamp", "MMSI", "Position", "Status", "RoT", "SoG", "CoG", "Heading"],
+    additionalProperties: true
 }
 const validate = ajv.compile(PositionReportSchema)
 

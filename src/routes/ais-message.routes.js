@@ -7,5 +7,6 @@ const jsonParser = bodyParser.json()
 
 router.get('/', AISController.getAISMessages)
 router.post('/', jsonParser, AISController.store)
+router.get('/delete', jsonParser, AISController.deleteOldAISMessages)
 
 module.exports = router

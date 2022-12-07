@@ -4,21 +4,18 @@ const ajv = new Ajv()
 const StaticDataSchema = {
     type: "object",
     properties: {
-        AISMessage_Id: {type: "integer"},
-        AISIMO: {type: "integer"},
-        CallSign: {type: "string"},
+        Timestamp: {type: "string"},
+        Class: {type: "string"},
+        MMSI: {type: "integer"},
+        IMO: {type: "integer"},
         Name: {type: "string"},
         VesselType: {type: "string"},
-        CargoType: {type: "string"},
-        Length: {type: "integer"},
-        Breadth: {type: "integer"},
-        Draught: {type: "integer"},
-        AISDestination: {type: "string"},
-        ETA: {type: "string"},
-        DestinationPort_Id: {type: "integer"},
+        Length: {type: "number"},
+        Breadth: {type: "number"},
+        CargoType: {type: "string", default: "No additional information"}
     },
-    required: ["AISMessage_Id", "AISIMO", "CallSign", "Name", "VesselType", "CargoType", "Length", "Breadth", "Draught", "AISDestination", "ETA", "DestinationPort_Id"],
-    additionalProperties: false
+    required: ["Timestamp", "Class", "MMSI", "IMO", "Name", "VesselType", "Length", "Breadth"],
+    additionalProperties: true
 }
 const validate = ajv.compile(StaticDataSchema)
 
