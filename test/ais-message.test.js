@@ -6,7 +6,7 @@ const validPositionReportJson = require("./json/validPositionReport.json");
 const validStaticDataJson = require("./json/validStaticData.json");
 //delete old ais messages
 describe("Test Deleting old AIS messages", () => {
-    test("Should have 2 deleted rows", async () => {
+    test("Should have deleted 0 or more rows", async () => {
         const response = await request(app).get('/ais-message/delete')
         expect(response.body.deleted).toBeGreaterThanOrEqual(0)
     })

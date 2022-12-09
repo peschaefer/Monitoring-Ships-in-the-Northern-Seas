@@ -9,24 +9,23 @@ const getAISMessages = async (request, response) => {
     response.status(200).json({data})
 }
 //ugly but counts minutes server has been up to do time calcs
-let minsPassed = 10
+let minsPassed = 50
 setInterval(() => {
     minsPassed++
 }, 60000)
 
 const deleteOldAISMessages = async (request, response) => {
-    console.log(minsPassed)
     //this date isnt the current time because the ais feed uses the date 2020-11-18 00:00:00 to send messages
-    const result = await db.query(`SELECT AIS_MESSAGE.Id FROM AIS_MESSAGE WHERE TIMESTAMPDIFF(MINUTE, AIS_MESSAGE.Timestamp, CONVERT('2020-11-18 00:${minsPassed}:00', DATETIME)) > 5`)
+    const result = await db.query(`DELETE FROM AIS_MESSAGE WHERE TIMESTAMPDIFF(MINUTE, AIS_MESSAGE.Timestamp, CONVERT('2020-11-18 00:${minsPassed}:00', DATETIME)) > 5`)
+    response.status(200).json({deleted: result.affectedRows})
 
-
-    for (let i = 0; i < result.length; i++) {
-        const aisId = result[i].Id
-        await db.query(`DELETE FROM POSITION_REPORT WHERE AISMessage_Id = ${aisId}`)
-
-        await db.query(`DELETE FROM AIS_MESSAGE WHERE Id = ${aisId}`)
-    }
-    response.status(200).json({deleted: result.length})
+    // for (let i = 0; i < result.length; i++) {
+    //     const aisId = result[i].Id
+    //     await db.query(`DELETE FROM AIS_MESSAGE, POSITION_REPORT INNER JOIN POSITION_REPORT ON AIS_MESSAGE.Id = POSITION_REPORT.AISMessage_Id WHERE AIS_MESSAGE.Id = '${aisId}'`)
+    //     // await db.query(`DELETE FROM POSITION_REPORT WHERE AISMessage_Id = ${aisId}`)
+    //     //
+    //     // await db.query(`DELETE FROM AIS_MESSAGE WHERE Id = ${aisId}`)
+    // }
 }
 
 const store = async (request, response) => {
