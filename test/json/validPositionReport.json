@@ -1,0 +1,18 @@
+{
+  "Timestamp": "2020-11-18T00:00:00.000Z",
+  "Class": "Class A",
+  "MMSI": 220490000,
+  "MsgType": "position_report",
+  "Position": {
+    "type": "Point",
+    "coordinates": [
+      56.60658,
+      8.088727
+    ]
+  },
+  "Status": "Under way using engine",
+  "RoT": 35,
+  "SoG": 8.8,
+  "CoG": 12.2,
+  "Heading": 16
+}

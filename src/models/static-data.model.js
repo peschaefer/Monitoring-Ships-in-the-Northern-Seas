@@ -15,7 +15,7 @@ const StaticDataSchema = {
         CargoType: {type: "string", default: "No additional information"}
     },
     required: ["Timestamp", "Class", "MMSI", "IMO", "Name", "VesselType", "Length", "Breadth"],
-    additionalProperties: true
+    additionalProperties: true,
 }
 const validate = ajv.compile(StaticDataSchema)
 
