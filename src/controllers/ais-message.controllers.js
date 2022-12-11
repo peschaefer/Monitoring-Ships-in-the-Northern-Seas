@@ -1,15 +1,13 @@
 const db = require('../utils/db')
-const UserModel = require("../models/example");
 const {AISMessageValidator} = require("../models/ais-message.model");
 const {PositionReportValidator} = require("../models/position-report.model");
 const {StaticDataValidator} = require("../models/static-data.model");
-const {getPort} = require("./port.controllers");
 const getAISMessages = async (request, response) => {
     const data = await db.query('SELECT * FROM ais_message')
     response.status(200).json({data})
 }
-//ugly but counts minutes server has been up to do time calcs
-let minsPassed = 50
+//counts minutes server has been up to do time calcs
+let minsPassed = 5
 setInterval(() => {
     minsPassed++
 }, 60000)
@@ -18,29 +16,15 @@ const deleteOldAISMessages = async (request, response) => {
     //this date isnt the current time because the ais feed uses the date 2020-11-18 00:00:00 to send messages
     const result = await db.query(`DELETE FROM AIS_MESSAGE WHERE TIMESTAMPDIFF(MINUTE, AIS_MESSAGE.Timestamp, CONVERT('2020-11-18 00:${minsPassed}:00', DATETIME)) > 5`)
     response.status(200).json({deleted: result.affectedRows})
-
-    // for (let i = 0; i < result.length; i++) {
-    //     const aisId = result[i].Id
-    //     await db.query(`DELETE FROM AIS_MESSAGE, POSITION_REPORT INNER JOIN POSITION_REPORT ON AIS_MESSAGE.Id = POSITION_REPORT.AISMessage_Id WHERE AIS_MESSAGE.Id = '${aisId}'`)
-    //     // await db.query(`DELETE FROM POSITION_REPORT WHERE AISMessage_Id = ${aisId}`)
-    //     //
-    //     // await db.query(`DELETE FROM AIS_MESSAGE WHERE Id = ${aisId}`)
-    // }
 }
 
 const store = async (request, response) => {
     const aisMessage = request.body
-    // const valid = AISMessageValidator(request.body)
-    //
-    // if(!valid.valid) {
-    //     response.status(400).json({status: valid})
-    //     return
-    // }
+
     let insertedRows = 0
-    //this only works if wrapped in array
 
     try {
-        if(aisMessage.length > 1) {
+        if (aisMessage.length > 1) {
             for (let i = 0; i < aisMessage.length; i++) {
                 if (aisMessage[i].MsgType === "position_report") {
                     const result = await storePositionReport(aisMessage[i], response)
@@ -78,8 +62,7 @@ const store = async (request, response) => {
 
 }
 
-const storePositionReport = async (aisMessage, response) => {
-
+const storePositionReport = async (aisMessage) => {
     const valid = PositionReportValidator(aisMessage)
 
     if (!valid.valid) {
@@ -90,6 +73,7 @@ const storePositionReport = async (aisMessage, response) => {
                                    VALUES ('${aisMessage.MMSI}', '${aisMessage.Class}', '${aisMessage.Timestamp.slice(0,-4)}')`)
 
     const AISResult = await db.query(`SELECT Id FROM AIS_MESSAGE WHERE MMSI='${aisMessage.MMSI}'`)
+
 
     const staticResult = await db.query(`SELECT AISMessage_Id FROM STATIC_DATA WHERE AISMessage_Id='${AISResult[AISResult.length - 1].Id}'`)
     if (staticResult.length === 0) {
@@ -122,15 +106,10 @@ const storePositionReport = async (aisMessage, response) => {
         return {valid: valid}
     } else {
         return positionResult
-
-        // response.status(400).json({valid: false, message: result})
     }
 
 }
-const storeStaticData = async (aisMessage, response) => {
-    // console.log("Static: ")
-    // console.log(aisMessage)
-
+const storeStaticData = async (aisMessage) => {
     const valid = StaticDataValidator(aisMessage)
 
     if (!valid.valid) {
@@ -147,7 +126,7 @@ const storeStaticData = async (aisMessage, response) => {
     }
 
     const result = await db.query(`INSERT INTO AIS_MESSAGE (MMSI, Class, Timestamp, Vessel_IMO)
-                                   VALUES ('${aisMessage.MMSI}', '${aisMessage.Class}', '${aisMessage.Timestamp.slice(0,-4)}', NULLIF('${aisMessage.IMO}', '-1'))`)
+                                   VALUES ('${aisMessage.MMSI}', '${aisMessage.Class}', '${aisMessage.Timestamp.slice(0,-4)}', NULLIF('${aisMessage.IMO}', -1))`)
 
     let portId = await db.query(`SELECT Id FROM PORT WHERE PORT.Name = '${aisMessage.Destination}'`)
     if (portId.length === 0) {
@@ -170,7 +149,7 @@ const storeStaticData = async (aisMessage, response) => {
     const staticResult = await db.query(`INSERT INTO STATIC_DATA (AISMessage_Id, AISIMO, CallSign, Name, VesselType,
                                                                   CargoType, Length, Breadth, Draught,
                                                                   AISDestination, ETA, DestinationPort_Id)
-                                         VALUES ('${result.insertId}', '${aisMessage.IMO}',
+                                         VALUES ('${result.insertId}', NULLIF('${aisMessage.IMO}', '-1'),
                                                  NULLIF('${aisMessage.CallSign}', '-1'),
                                                  '${aisMessage.Name}',
                                                  '${aisMessage.VesselType}', '${aisMessage.CargoType}',
@@ -181,7 +160,6 @@ const storeStaticData = async (aisMessage, response) => {
         return {valid: valid}
     } else {
         throw staticResult
-        // response.status(400).json({valid: false, message: staticResult})
     }
 }
 
