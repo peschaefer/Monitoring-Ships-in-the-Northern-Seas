@@ -1,7 +1,6 @@
 [{
   "Timestamp": "2020-11-18T00:00:00.000Z",
   "Class": "Class A",
-  "MMSI": 210169000,
   "MsgType": "static_data",
   "IMO": 9584865,
   "CallSign": "5BNZ3",

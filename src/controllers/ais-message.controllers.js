@@ -2,10 +2,7 @@ const db = require('../utils/db')
 const {AISMessageValidator} = require("../models/ais-message.model");
 const {PositionReportValidator} = require("../models/position-report.model");
 const {StaticDataValidator} = require("../models/static-data.model");
-const getAISMessages = async (request, response) => {
-    const data = await db.query('SELECT * FROM ais_message')
-    response.status(200).json({data})
-}
+
 //counts minutes server has been up to do time calcs
 let minsPassed = 5
 setInterval(() => {
@@ -24,35 +21,21 @@ const store = async (request, response) => {
     let insertedRows = 0
 
     try {
-        if (aisMessage.length > 1) {
-            for (let i = 0; i < aisMessage.length; i++) {
-                if (aisMessage[i].MsgType === "position_report") {
-                    const result = await storePositionReport(aisMessage[i], response)
-                    if (result.valid) {
-                        insertedRows++
-                    }
+        for (let i = 0; i < aisMessage.length; i++) {
+            if (aisMessage[i].MsgType === "position_report") {
+                const result = await storePositionReport(aisMessage[i], response)
+                if (result.valid) {
+                    insertedRows++
+                }
 
-                } else if (aisMessage[i].MsgType === "static_data") {
-                    const result = await storeStaticData(aisMessage[i], response)
-                    if (result.valid) {
-                        insertedRows++
-                    }
-                }
-            }
-        } else {
-            if (aisMessage.MsgType === "position_report") {
-                const result = await storePositionReport(aisMessage, response)
-                if (result.valid) {
-                    insertedRows++
-                }
-            } else if (aisMessage.MsgType === "static_data") {
-                const result = await storeStaticData(aisMessage, response)
+            } else if (aisMessage[i].MsgType === "static_data") {
+                const result = await storeStaticData(aisMessage[i], response)
                 if (result.valid) {
                     insertedRows++
                 }
             }
+
         }
-
     } catch (e) {
         console.log(e)
     } finally {
@@ -164,7 +147,6 @@ const storeStaticData = async (aisMessage) => {
 }
 
 module.exports = {
-    getAISMessages,
     store,
     deleteOldAISMessages,
     storePositionReport,

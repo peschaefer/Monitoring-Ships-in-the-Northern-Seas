@@ -5,7 +5,6 @@ const router = express.Router()
 
 const jsonParser = bodyParser.json()
 
-router.get('/', AISController.getAISMessages)
 router.post('/', jsonParser, AISController.store)
 router.get('/delete', AISController.deleteOldAISMessages)
 
