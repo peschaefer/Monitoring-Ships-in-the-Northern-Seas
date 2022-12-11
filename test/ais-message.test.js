@@ -4,6 +4,10 @@ const validAISBatchJson = require("./json/validAisBatch.json");
 const invalidAISBatchJson = require("./json/invalidAisBatch.json");
 const validPositionReportJson = require("./json/validPositionReport.json");
 const validStaticDataJson = require("./json/validStaticData.json");
+const {PositionReportValidator} = require("../src/models/position-report.model");
+const {StaticDataValidator} = require("../src/models/static-data.model");
+const invalidPositionReportJson = require("./json/invalidPositionReport.json");
+const invalidStaticDataJson = require("./json/invalidStaticData.json");
 //delete old ais messages
 describe("Test Deleting old AIS messages", () => {
     test("Should have deleted 0 or more rows", async () => {
@@ -41,11 +45,43 @@ describe("Test Posting AIS Message, static data with no batch", () => {
     })
 })
 
-//test getting port by name
+describe("Test Posting invalid AIS Message, position report with no batch", () => {
+    test("Should have 0 inserted rows", async () => {
+        const response = await request(app).post('/ais-message').send(invalidPositionReportJson)
+        expect(response.body.insertedRows).toBe(0)
+    })
+})
 
-//test getting port by country?
+describe("Test Posting invalid AIS Message, static data with no batch", () => {
+    test("Should have 0 inserted rows", async () => {
+        const response = await request(app).post('/ais-message').send(invalidStaticDataJson)
+        expect(response.body.insertedRows).toBe(0)
+    })
+})
 
-//test get/insert queries with db.js
+describe('Test position report model json validation', function () {
+    test('Should be valid', function () {
+        expect(PositionReportValidator(validPositionReportJson[0]).valid).toBe(true)
+    })
+});
 
-//sql injection?
+describe('Test static data model json validation', function () {
+    test('Should be valid', function () {
+        expect(StaticDataValidator(validStaticDataJson[0]).valid).toBe(true)
+    })
+})
+
+describe('Test invalid position report model json validation', function () {
+    test('Should be invalid', function () {
+        expect(PositionReportValidator(invalidPositionReportJson[0]).message).toBe("data must have required property 'Position'")
+    })
+})
+
+describe('Test invalid static ata model json validation', function () {
+    test('Should be invalid', function () {
+        expect(StaticDataValidator(invalidStaticDataJson[0]).message).toBe("data must have required property 'MMSI'")
+    })
+})
+
+
 

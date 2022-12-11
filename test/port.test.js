@@ -16,3 +16,17 @@ describe ("Test Getting port by country", () => {
         expect(response.body.data[0].Name).toBe('Nyborg')
     })
 })
+
+describe("Test invalid port name", () => {
+    test("Should get no port", async () => {
+        const response = await request(app).get('/port?port=invalid')
+        expect(response.body.data.length).toBe(0)
+    })
+})
+
+describe("Test invalid country but not invalid port name", () => {
+    test("Should get no port", async () => {
+        const response = await request(app).get('/port?port=Nyborg&country=invalid')
+        expect(response.body.data.length).toBe(0)
+    })
+})
