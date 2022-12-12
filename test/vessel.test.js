@@ -16,7 +16,12 @@ describe("Test Getting most recent position from invalid mmsi", () => {
 })
 
 //last 5 mmsi positions
-
+describe("Test Getting last 5 positions from mmsi", () => {
+    test("Should get the test position reports", async () => {
+        const response = await request(app).get('/position-reports/positions?MMSI=0')
+        expect(response.body.length).toBeGreaterThanOrEqual(0)
+    })
+})
 
 describe("Test Getting A Vessel", () => {
     test("Should have vessel data", async () => {

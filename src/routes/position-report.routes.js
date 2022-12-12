@@ -5,5 +5,5 @@ const router = express.Router()
 
 router.get('/', positionReportControllers.getRecentShipPositions)
 router.get('/recent', positionReportControllers.getShipsMostRecentPosition)
-
+router.get('/positions', positionReportControllers.getLastFiveShips)
 module.exports = router
