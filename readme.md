@@ -14,3 +14,5 @@ To start server run this in the root directory:
 To run tests: 
 
 `npm run test`
+
+Also included is a slightly modified version of the AIS feed which contains its own readme.md if you wish to run that
