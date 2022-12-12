@@ -6,5 +6,6 @@ const config = {
         database: "AISTestData"
     }
 }
+// sets up MySQL through computer
 
 module.exports = config
